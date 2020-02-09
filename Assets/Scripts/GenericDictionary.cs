@@ -16,28 +16,13 @@ public class GenericDictionary<TKey, TValue> : ISerializationCallbackReceiver
 
     public void OnBeforeSerialize()
     {
-        // Sync the dictionary and list, this could be optimized if need be
-        // but I opted for better readability and ease of implementation here.
-        var tempList = new List<KeyValue<TKey, TValue>>(dict.Count);
-        foreach (var pair in dict)
-        {
-            //tempList.Add(new KeyValue<TKey, TValue>(pair.Key, pair.Value));
-        }
-
+        // Sync the dictionary and list
         foreach (KeyValuePair<TKey, TValue> pair in dict)
         {
             var kv = new KeyValue<TKey, TValue>(pair.Key, pair.Value);
             if (!list.Contains(kv))
             {
                 list.Add(kv);
-            }
-        }
-
-        foreach (var pair in tempList)
-        {
-            if (!list.Contains(pair))
-            {
-                //list.Add(pair);
             }
         }
     }
@@ -48,8 +33,8 @@ public class GenericDictionary<TKey, TValue> : ISerializationCallbackReceiver
         foreach (var pair in list)
         {
             // Unity autofills new entries in inspector to the last entrys value so
-            // assume if key already exists user is currently adding keys in inspector.
-            // They will be serialized later in the OnBeforeSerialize callback.
+            // assume if key already exists user is currently adding new keys via the 
+            // inspector that will be serialized later in the OnBeforeSerialize callback.
             if (pair.Key != null && !dict.ContainsKey(pair.Key))
             {
                 dict.Add(pair.Key, pair.Value);

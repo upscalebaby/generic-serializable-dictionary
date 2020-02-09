@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
 /// Draws the generic dictionary a bit nicer than Unity would natively (not as many expand-arrows etc.).
@@ -13,8 +14,10 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
 
     public override void OnGUI(Rect pos, SerializedProperty property, GUIContent label)
     {
-        // render field name and expand arrow
+        // render list header and the expand arrow
         var list = property.FindPropertyRelative("list");
+        //Debug.Log(fieldInfo.FieldType.GetGenericArguments()[1]);  // yay here we can get concrete type
+        
         var headerPos = new Rect(lineHeight, pos.y, pos.width, lineHeight);
         EditorGUI.PropertyField(headerPos, list, new GUIContent(fieldInfo.Name));
 
@@ -29,7 +32,7 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
 
             // render list content
             newPos.y += vertSpace;
-            while (list.depth >= 2)
+            while (true)
             {
                 if (list.name == "Key" || list.name == "Value")
                 {
@@ -37,8 +40,16 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
                     var entryPos = new Rect(newPos.x, newPos.y + combined, pos.width, lineHeight);
                     EditorGUI.PropertyField(entryPos, list, new GUIContent(list.name));
                     newPos.y += combined;
+
+                    // use reflection
+                    //.GetElementType();
+                    if (list.name == "Key")
+                    {
+                        //Debug.Log(list.propertyType);
+                    }
+                        
                     
-                    // add spacing after each pair has rendered
+                    // add spacing after each key value pair
                     if (list.name == "Value")
                     {
                         newPos.y += vertSpace;
