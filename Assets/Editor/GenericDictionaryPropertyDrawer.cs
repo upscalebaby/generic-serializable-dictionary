@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 /// <summary>
 /// Draws the generic dictionary a bit nicer than Unity would natively (not as many expand-arrows).
-/// Also renders a warning-box if there are duplicate keys.
+/// Also renders a warning-box if there are duplicate keys in the dictionary.
 /// </summary>
 [CustomPropertyDrawer(typeof(GenericDictionary<,>))]
 public class GenericDictionaryPropertyDrawer : PropertyDrawer
@@ -18,7 +18,8 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
         // Render list header and expand arrow.
         var list = property.FindPropertyRelative("list");
         var headerPos = new Rect(lineHeight, pos.y, pos.width, lineHeight);
-        EditorGUI.PropertyField(headerPos, list, new GUIContent(fieldInfo.Name));
+        string fieldName = ObjectNames.NicifyVariableName(fieldInfo.Name);
+        EditorGUI.PropertyField(headerPos, list, new GUIContent(fieldName));
 
         // Render list if expanded.
         var currentPos = new Rect(lineHeight, pos.y, pos.width, lineHeight);
