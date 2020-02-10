@@ -2,10 +2,9 @@
 using UnityEngine;
 
 /// <summary>
-/// A Serializable Generic Dictionary for Unity that requires no boilerplate to work. Simply 
-/// declare your key value types when creating a field and you're good to go. Requires a 
+/// A Serializable Generic Dictionary for Unity that requires no boilerplate to work.
+/// Simply declare your field and key value types and you're good to go. Requires a 
 /// Unity version with generic serialization support (Unity 2020.1.X and above).
-/// Feel free to report issues on XXXXXXXXXXXXX
 /// </summary>
 [System.Serializable]
 public class GenericDictionary<TKey, TValue> : ISerializationCallbackReceiver
