@@ -3,13 +3,15 @@ Minimalist dictionary for Unity 2020.1.x with a native look and feel.
 
 ## What
 
-* A generic and serializable Dictionary for Unity in about 70 LOC (including summaries and comments).
+* Generic and serializable Dictionary for Unity in about 70 LOC (including summaries and comments).
 
 * Uses plain System.Collections.Generic objects in combination with Unitys built-in serializer.
 
-* An optional property drawer that displays the Dictionary near pixel perfectly as a native List<T> but with standard spacing between each KeyValue-pair (to make it easier on the eyes).
+* Optional property drawer that displays the Dictionary near pixel perfectly as a List but with standard spacing between each KeyValue-pair (to make it easier on the eyes).
 
-* Zero boilerplate, just declare your field and start using it! See Example.cs for specifics.
+* Zero boilerplate, declare your field and start using it! See Example.cs for specifics.
+
+![](example.gif)
 
 ```
 // supports all types and classes (including custom ones)
@@ -18,13 +20,13 @@ public GenericDictionary<string, GameObject> myGenericDict;
 // accessing the backend dictionary
 myGenericDict.dict.Add("abc", this.gameObject);
 ```
-![](example.gif)
+
 
 ## Why 
 
 As of 2020.1.x Unity supports generic serialization and native support for displaying generic Lists in the inspector. But for a long time the community has wanted a generic Dictionary implementation that doesn't require you to add boilerplate for each concrete Dictionary type.
 
-I'm not a fan of highly decorated inspectors that deviate from native Unity inspectors look and feel. This dictionary aims to look like any other Unity component.
+Personally I'm not a fan of heavily decorated inspectors that deviate from native Unity inspectors look and feel. This dictionary aims to look like any other Unity component.
 
 I found this an interesting problem that could potentially help other devs so I implemented it and licensed it under MIT.
 
