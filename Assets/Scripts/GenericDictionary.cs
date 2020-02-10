@@ -13,10 +13,12 @@ public class GenericDictionary<TKey, TValue> : ISerializationCallbackReceiver
     public Dictionary<TKey, TValue> dict = new Dictionary<TKey, TValue>();
     [SerializeField]
     List<KeyValue<TKey, TValue>> list = new List<KeyValue<TKey, TValue>>();
+    [SerializeField, HideInInspector]
+    bool keyCollision;
 
     public void OnBeforeSerialize()
     {
-        // Sync the dictionary and list
+        // Add all items in dictionary to list.
         foreach (KeyValuePair<TKey, TValue> pair in dict)
         {
             var kv = new KeyValue<TKey, TValue>(pair.Key, pair.Value);
@@ -29,15 +31,21 @@ public class GenericDictionary<TKey, TValue> : ISerializationCallbackReceiver
 
     public void OnAfterDeserialize()
     {
+        // Create new dictionary based on the list contents and flag key collisions.
+        keyCollision = false;
         dict = new Dictionary<TKey, TValue>(list.Count);
         foreach (var pair in list)
         {
-            // Unity autofills new entries in inspector to the last entrys value so
-            // assume if key already exists user is currently adding new keys via the 
-            // inspector that will be serialized later in the OnBeforeSerialize callback.
             if (pair.Key != null && !dict.ContainsKey(pair.Key))
             {
                 dict.Add(pair.Key, pair.Value);
+            }
+            else
+            {
+                if (!keyCollision)
+                {
+                    keyCollision = true;
+                }
             }
         }
     }

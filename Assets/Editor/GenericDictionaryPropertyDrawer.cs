@@ -3,77 +3,87 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// Draws the generic dictionary a bit nicer than Unity would natively (not as many expand-arrows etc.).
+/// Draws the generic dictionary a bit nicer than Unity would natively (not as many expand-arrows).
+/// Also renders a warning-box if there are duplicate keys.
 /// </summary>
 [CustomPropertyDrawer(typeof(GenericDictionary<,>))]
 public class GenericDictionaryPropertyDrawer : PropertyDrawer
 {
     static float lineHeight = EditorGUIUtility.singleLineHeight;
     static float vertSpace = EditorGUIUtility.standardVerticalSpacing;
-    static float combined = lineHeight + vertSpace;
+    static float combinedPadding = lineHeight + vertSpace;
 
     public override void OnGUI(Rect pos, SerializedProperty property, GUIContent label)
     {
-        // render list header and the expand arrow
+        // Render list header and expand arrow.
         var list = property.FindPropertyRelative("list");
-        //Debug.Log(fieldInfo.FieldType.GetGenericArguments()[1]);  // yay here we can get concrete type
-        
         var headerPos = new Rect(lineHeight, pos.y, pos.width, lineHeight);
         EditorGUI.PropertyField(headerPos, list, new GUIContent(fieldInfo.Name));
 
+        // Render list if expanded.
+        var currentPos = new Rect(lineHeight, pos.y, pos.width, lineHeight);
         if (list.isExpanded)
         {
-            // render list size
+            // Render list size first.
             list.NextVisible(true);
-            var newPos = new Rect(headerPos.x + combined, headerPos.y + combined, 1f, lineHeight);
-            newPos = new Rect(headerPos.x, headerPos.y + combined, pos.width, lineHeight);
             EditorGUI.indentLevel++;
-            EditorGUI.PropertyField(newPos, list, new GUIContent("Size"));
+            currentPos = new Rect(headerPos.x, headerPos.y + combinedPadding, pos.width, lineHeight);
+            EditorGUI.PropertyField(currentPos, list, new GUIContent("Size"));
 
-            // render list content
-            newPos.y += vertSpace;
+            // Render list content.
+            currentPos.y += vertSpace;
             while (true)
             {
                 if (list.name == "Key" || list.name == "Value")
                 {
-                    // render key or value
-                    var entryPos = new Rect(newPos.x, newPos.y + combined, pos.width, lineHeight);
+                    // Render key or value.
+                    var entryPos = new Rect(currentPos.x, currentPos.y + combinedPadding, pos.width, lineHeight);
                     EditorGUI.PropertyField(entryPos, list, new GUIContent(list.name));
-                    newPos.y += combined;
+                    currentPos.y += combinedPadding;
 
-                    // use reflection
-                    //.GetElementType();
-                    if (list.name == "Key")
-                    {
-                        //Debug.Log(list.propertyType);
-                    }
-                        
-                    
-                    // add spacing after each key value pair
+                    // Add spacing after each key value pair.
                     if (list.name == "Value")
                     {
-                        newPos.y += vertSpace;
+                        currentPos.y += vertSpace;
                     }
                 }
                 if (!list.NextVisible(true)) break;
             }
         }
+
+        // If there is a key collision render warning box.
+        bool keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
+        if (keyCollision)
+        {
+            var entryPos = new Rect(lineHeight, currentPos.y + combinedPadding, pos.width, lineHeight * 2f);
+            EditorGUI.HelpBox(entryPos, "There are duplicate keys in the dictionary." + 
+                " Duplicate keys will not be serialized.", MessageType.Warning);
+        }
     }
-    
+
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
-        // Return height of list (respect if list is expanded or unexpanded)
+        float totHeight = 0f;
+
+        // If there is a key collision account for height of helpbox .
+        bool keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
+        if (keyCollision)
+        {
+            totHeight += lineHeight * 2f + vertSpace;
+        }
+
+        // Return height of KeyValue list (respect if list is expanded or unexpanded).
         var listProp = property.FindPropertyRelative("list");
         if (listProp.isExpanded)
         {
             listProp.NextVisible(true);
             int listSize = listProp.intValue;
-            float totHeight = listSize * 2f * combined + combined * 2f + listSize * vertSpace;
+            totHeight += listSize * 2f * combinedPadding + combinedPadding * 2f + listSize * vertSpace;
             return totHeight;
         }
         else
         {
-            return lineHeight;
+            return totHeight + lineHeight;
         }
     }
 }
