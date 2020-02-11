@@ -26,9 +26,7 @@ myGenericDict.dict.Add("abc", this.gameObject);
 
 As of 2020.1.x Unity supports generic serialization and native support for displaying generic Lists in the inspector. But for a long time the community has wanted a generic Dictionary implementation that doesn't require you to add boilerplate for each concrete Dictionary type.
 
-Personally I'm not a fan of heavily decorated inspectors that deviate from native Unity inspectors look and feel. This dictionary aims to look like any other Unity component.
-
-I found this an interesting problem that could potentially help other devs so I implemented it and licensed it under MIT.
+Personally I'm not a fan of heavily decorated inspectors that deviate from native Unity inspectors look and feel. Unlike most dictionary implementations for unity, this dictionary aims to look like any other Unity component.
 
 ## How
 
