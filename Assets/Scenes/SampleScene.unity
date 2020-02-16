@@ -329,8 +329,12 @@ MonoBehaviour:
     list:
     - Key: abc
       Value: {fileID: 705507993}
-    - Key: 123
+    - Key: def
       Value: {fileID: 963194225}
+    keyCollision: 0
+  test:
+  - 
+  - 
 --- !u!4 &1582050390
 Transform:
   m_ObjectHideFlags: 0

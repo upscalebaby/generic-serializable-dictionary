@@ -3,8 +3,9 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// Draws the generic dictionary a bit nicer than Unity would natively (not as many expand-arrows).
-/// Also renders a warning-box if there are duplicate keys in the dictionary.
+/// Draws the generic dictionary a bit nicer than Unity would natively (not as many expand-arrows
+/// and better spacing between KeyValue pairs). Also renders a warning-box if there are duplicate
+/// keys in the dictionary.
 /// </summary>
 [CustomPropertyDrawer(typeof(GenericDictionary<,>))]
 public class GenericDictionaryPropertyDrawer : PropertyDrawer
@@ -52,7 +53,7 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
             }
         }
 
-        // If there is a key collision render warning box.
+        // If there are key collisions render warning box.
         bool keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
         if (keyCollision)
         {
@@ -66,14 +67,14 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
     {
         float totHeight = 0f;
 
-        // If there is a key collision account for height of helpbox .
+        // If there is a key collision account for height of warning box.
         bool keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
         if (keyCollision)
         {
             totHeight += lineHeight * 2f + vertSpace;
         }
 
-        // Return height of KeyValue list (respect if list is expanded or unexpanded).
+        // Return height of KeyValue list (take into account if list is expanded or not).
         var listProp = property.FindPropertyRelative("list");
         if (listProp.isExpanded)
         {
