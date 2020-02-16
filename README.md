@@ -3,9 +3,9 @@ Minimalist dictionary for Unity 2020.1.x with a native look and feel.
 
 ## What
 
-* Generic and serializable Dictionary for Unity in about 70 LOC (including summaries and comments).
+* Lightweight and Generic and Serializable Dictionary with a native look and feel for Unity 2020.1.x.
 
-* Uses plain System.Collections.Generic objects in combination with Unitys built-in serializer.
+* Uses plain System.Collections.Generic objects in combination with Unitys built-in serializer. The Generic Dictionary class implements the IDictionary interface and can thus also be passed around as an ICollection.
 
 * Optional property drawer that displays the Dictionary near pixel perfectly as a List but with standard spacing between each KeyValue-pair (to make it easier on the eyes).
 
@@ -23,9 +23,9 @@ Also, personally I'm not a fan of heavily decorated or bloated inspectors that d
 
 ## How
 
-The GenericDictionary class contains all the interesting bits. It implements the IDictionary interface to behave as a standard generic dictionary and can be passed around as both an ICollection and IDictionary implementation. But it also implements ISerializationCallback to receive serialization callbacks. Upon (de)serialization it syncs the backing Dictionary with the frontend List. If there are any key collisions there's a GenericDictionaryPropertyDrawer that displays a standard Unity helpbox in the inspector to highlight this.
+The GenericDictionary class contains all the interesting bits. It implements the IDictionary interface to behave as a standard generic dictionary. It also implements ISerializationCallback to receive serialization callbacks. Upon (de)serialization it syncs the backend Dictionary with the frontend List. If there are any key collisions the GenericDictionaryPropertyDrawer displays a standard Unity helpbox in the inspector to highlight this.
 
-So no datastructures were harmed or modified when creating this: it's all just plain old System.Collections.Generic but used together with Unitys generic serializer to display a native feeling Dictionary in the inspector.
+No datastructures were harmed or modified when creating this: it's all just plain old System.Collections.Generic but used behind a IDictionary interface and used together with Unitys generic serializer to display a native feeling Dictionary in the inspector.
 
 ## Features
 
@@ -37,7 +37,7 @@ So no datastructures were harmed or modified when creating this: it's all just p
 
 * The custom property drawer displays a standard warning box for key collisions - similar to the floating point precision warning in the Transform component.
 
-![]propertydrawerexample.PNG
+![](propertydrawerexample.PNG)
 
 ## How to use
 
