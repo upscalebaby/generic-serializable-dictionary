@@ -138,6 +138,13 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
 
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
+        if (array == null)
+            throw new ArgumentException("The array cannot be null.");
+        if (arrayIndex < 0)
+           throw new ArgumentOutOfRangeException("The starting array index cannot be negative.");
+        if (array.Length < (dictionary.Count - arrayIndex))
+            throw new ArgumentException("The destination array has fewer elements than the collection.");
+
         int i = 0;
         int j = 0;
         foreach (var pair in dictionary)
