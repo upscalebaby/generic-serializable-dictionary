@@ -13,21 +13,19 @@ Minimalist dictionary for Unity 2020.1.x with a native look and feel.
 
 * Zero boilerplate, declare your field and start using it! See Example.cs for specifics.
 
-Todo: insert pic of new code
+![](code_example1.PNG)
 
 ## Why 
 
 As of 2020.1.x Unity supports generic serialization and native support for displaying generic Lists in the inspector. But for a long time the community has wanted a generic Dictionary implementation that doesn't require you to add boilerplate for each concrete Dictionary type.
 
-Personally I'm not a fan of heavily decorated or bloated inspectors that deviate from Unity's standard inspector look and feel. Unlike most dictionary implementations for unity, this dictionary aims to look and work like the standard components you already know and use.
+Also, personally I'm not a fan of heavily decorated or bloated inspectors that deviate from Unity's standard inspector look and feel. This dictionary aims to look and work like the standard components you already know and use.
 
 ## How
 
-Todo: upate with new implentation details
+The GenericDictionary class contains all the interesting bits. It implements the IDictionary interface to behave as a standard generic dictionary and can be passed around as both an ICollection and IDictionary implementation. But it also implements ISerializationCallback to receive serialization callbacks. Upon (de)serialization it syncs the backing Dictionary with the frontend List. If there are any key collisions there's a GenericDictionaryPropertyDrawer that displays a standard Unity helpbox in the inspector to highlight this.
 
-The trick is quite simple: a generic struct KeyValue<TKey, TValue> is declared. From this a generic List<KeyValue<TKey, TValue>> can be defined. This List is serialized and displayed natively in the inspector by Unity. The ISerializationCallback interface is implemented to gain access to serialization callbacks that are used to sync the backend Dictionary with the frontend List upon (de)serialization.
-
-No datastructures are modified or reimplemented: just plain old System.Collections.Generic but used together with Unitys generic serializer to display a native feeling Dictionary in the inspector.
+So no datastructures were harmed or modified when creating this: it's all just plain old System.Collections.Generic but used together with Unitys generic serializer to display a native feeling Dictionary in the inspector.
 
 ## Features
 
@@ -39,7 +37,7 @@ No datastructures are modified or reimplemented: just plain old System.Collectio
 
 * The custom property drawer displays a standard warning box for key collisions - similar to the floating point precision warning in the Transform component.
 
-Todo: picture of transform and key collision warnings
+![]propertydrawerexample.PNG
 
 ## How to use
 
