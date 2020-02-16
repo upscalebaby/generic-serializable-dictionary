@@ -12,7 +12,7 @@ using System;
 public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISerializationCallbackReceiver
 {
     [SerializeField]
-    List<KeyValue<TKey, TValue>> list = new List<KeyValue<TKey, TValue>>();
+    List<KeyValue> list = new List<KeyValue>();
     [SerializeField, HideInInspector]
     Dictionary<TKey, TValue> dictionary = new Dictionary<TKey, TValue>();
     [SerializeField, HideInInspector]
@@ -20,12 +20,28 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
     [SerializeField, HideInInspector]
     bool isReadOnly;
 
+    /// <summary>
+    /// Serializable KeyValue struct used as items in the dictionary. This struct is needed
+    /// since the KeyValuePair in System.Collections.Generic isn't serializable.
+    /// </summary>
+    [Serializable]
+    private struct KeyValue
+    {
+        public TKey Key;
+        public TValue Value;
+        public KeyValue(TKey Key, TValue Value)
+        {
+            this.Key = Key;
+            this.Value = Value;
+        }
+    }
+
     public void OnBeforeSerialize()
     {
         // Add all items in dictionary to list.
         foreach (var pair in dictionary)
         {
-            var kv = new KeyValue<TKey, TValue>(pair.Key, pair.Value);
+            var kv = new KeyValue(pair.Key, pair.Value);
             if (!list.Contains(kv))
             {
                 list.Add(kv);
@@ -191,21 +207,5 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
     IEnumerator IEnumerable.GetEnumerator()
     {
         return dictionary.GetEnumerator();
-    }
-}
-
-/// <summary>
-/// Serializable KeyValuePair, used as items in the dictionary. This is needed
-/// since the KeyValuePair in System.Collections.Generic isn't serializable.
-/// </summary>
-[Serializable]
-public struct KeyValue<TKey,TValue>
-{
-    public TKey Key;
-    public TValue Value;
-    public KeyValue(TKey Key, TValue Value)
-    {
-        this.Key = Key;
-        this.Value = Value;
     }
 }
