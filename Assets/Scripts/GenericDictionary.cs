@@ -4,9 +4,9 @@ using UnityEngine;
 using System;
 
 /// <summary>
-/// A Generic Serializable Dictionary for Unity that requires no boilerplate.
-/// Simply declare your field and key value types and you're good to go. Requires a 
-/// Unity version with generic serialization support (Unity 2020.1.X and above).
+/// A Generic Serializable Dictionary for Unity without any boilerplate - simply declare
+/// your field and key value types and you're good to go. Requires a Unity version with
+/// generic serialization support (Unity 2020.1.X and above).
 /// </summary>
 [Serializable]
 public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISerializationCallbackReceiver
@@ -17,15 +17,13 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
     Dictionary<TKey, TValue> dictionary = new Dictionary<TKey, TValue>();
     [SerializeField, HideInInspector]
     bool keyCollision;
-    [SerializeField, HideInInspector]
-    bool isReadOnly;
 
     /// <summary>
-    /// Serializable KeyValue struct used as items in the dictionary. This struct is needed
+    /// Serializable KeyValue struct used as items in the dictionary. This is needed
     /// since the KeyValuePair in System.Collections.Generic isn't serializable.
     /// </summary>
     [Serializable]
-    private struct KeyValue
+    struct KeyValue
     {
         public TKey Key;
         public TValue Value;
@@ -36,9 +34,47 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
         }
     }
 
+    public TValue this[TKey key]
+    {
+        get => dictionary[key];
+        set => dictionary[key] = value;
+    }
+
+    public ICollection<TKey> Keys
+    {
+        get => dictionary.Keys;
+    }
+
+    public ICollection<TValue> Values
+    {
+        get => dictionary.Values;
+    }
+
+    public int Count
+    {
+        get => dictionary.Count;
+    }
+
+    bool isReadOnly;
+    public bool IsReadOnly
+    {
+        get => isReadOnly;
+        set => isReadOnly = value;
+    }
+
+    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+    {
+        return dictionary.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return dictionary.GetEnumerator();
+    }
+
+    // Serialize dictionary into list representation.
     public void OnBeforeSerialize()
     {
-        // Add all items in dictionary to list.
         foreach (var pair in dictionary)
         {
             var kv = new KeyValue(pair.Key, pair.Value);
@@ -49,9 +85,9 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
         }
     }
 
+    // Deserialize dictionary from list while checking for key-collisions.
     public void OnAfterDeserialize()
     {
-        // Create new dictionary based on the list contents and flag key collisions.
         keyCollision = false;
         dictionary = new Dictionary<TKey, TValue>(list.Count);
         foreach (var pair in list)
@@ -62,60 +98,12 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
             }
             else
             {
-                // Redundant but removes the unused reference warning.
+                // Redundant, but removes unused reference warning.
                 if (!keyCollision)  
                 {
                     keyCollision = true;
                 }
             }
-        }
-    }
-
-    public TValue this[TKey key]
-    {
-        get
-        {
-            return dictionary[key];
-        }
-        set
-        {
-            dictionary[key] = value;
-        }
-    }
-
-    public ICollection<TKey> Keys
-    {
-        get
-        {
-            return dictionary.Keys;
-        }
-    }
-
-    public ICollection<TValue> Values
-    {
-        get
-        {
-            return dictionary.Values;
-        }
-    }
-
-    public int Count
-    {
-        get
-        {
-            return dictionary.Count;
-        }
-    }
-
-    public bool IsReadOnly
-    {
-        get
-        {
-            return isReadOnly;
-        }
-        set
-        {
-            isReadOnly = value;
         }
     }
 
@@ -132,6 +120,7 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
     public void Clear()
     {
         dictionary.Clear();
+        list.Clear();
     }
 
     public bool Contains(KeyValuePair<TKey, TValue> item)
@@ -174,14 +163,26 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
         }
     }
 
-    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-    {
-        return dictionary.GetEnumerator();
-    }
-
     public bool Remove(TKey key)
     {
-        return dictionary.Remove(key);
+        if (dictionary.Remove(key))
+        {
+            KeyValue item = new KeyValue();
+            foreach (var element in list)
+            {
+                if (EqualityComparer<TKey>.Default.Equals(element.Key, key))
+                {
+                    item = element;
+                    break;
+                }
+            }
+            list.Remove(item);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public bool Remove(KeyValuePair<TKey, TValue> item)
@@ -202,10 +203,5 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
     public bool TryGetValue(TKey key, out TValue value)
     {
         return dictionary.TryGetValue(key, out value);
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return dictionary.GetEnumerator();
     }
 }

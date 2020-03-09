@@ -19,7 +19,7 @@ public class Example : MonoBehaviour
 
     void Update()
     {
-        // Runtime test showing that inspector reflects runtime additions to dict.
+        // Runtime test showing that the inspector reflects runtime additions.
         if (Input.GetKeyDown(KeyCode.Space))
         {
             string newKey = "runtime example";
