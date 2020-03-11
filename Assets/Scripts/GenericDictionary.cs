@@ -147,19 +147,13 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
             throw new ArgumentException("The array cannot be null.");
         if (arrayIndex < 0)
            throw new ArgumentOutOfRangeException("The starting array index cannot be negative.");
-        if (array.Length < (dictionary.Count - arrayIndex))
+        if (array.Length - arrayIndex < dictionary.Count)
             throw new ArgumentException("The destination array has fewer elements than the collection.");
 
-        int i = 0;
-        int j = 0;
         foreach (var pair in dictionary)
         {
-            if (i >= arrayIndex)
-            {
-                array[j] = pair;
-                j++;
-            }
-            i++;
+            array[arrayIndex] = pair;
+            arrayIndex++;
         }
     }
 
