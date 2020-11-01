@@ -4,78 +4,56 @@ using UnityEngine;
 using System;
 
 /// <summary>
-/// Generic Serializable Dictionary for Unity 2020.1 or later.
-/// Simply declare your field and key/value types and you're good to go, zero boilerplate.
+/// Generic Serializable Dictionary for Unity 2020.1.
+/// Simply declare your key/value types and you're good to go - zero boilerplate.
 /// </summary>
 [Serializable]
 public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISerializationCallbackReceiver
 {
+    // Internal
     [SerializeField]
-    List<KeyValue> list = new List<KeyValue>();
+    List<KeyValuePair> list = new List<KeyValuePair>();
+    [SerializeField]
+    Dictionary<TKey, int> indexByKey = new Dictionary<TKey, int>();
     [SerializeField, HideInInspector]
-    Dictionary<TKey, TValue> dictionary = new Dictionary<TKey, TValue>();
-    
-    [SerializeField, HideInInspector]
+    Dictionary<TKey, TValue> dict = new Dictionary<TKey, TValue>();
+
     #pragma warning disable 0414
+    [SerializeField, HideInInspector]
     bool keyCollision;
     #pragma warning restore 0414
 
-    /// <summary>
-    /// Serializable KeyValue struct used as items in the dictionary. This is needed
-    /// since the KeyValuePair in System.Collections.Generic isn't serializable.
-    /// </summary>
+    // Serializable KeyValuePair struct
     [Serializable]
-    struct KeyValue
+    struct KeyValuePair
     {
         public TKey Key;
         public TValue Value;
-        public KeyValue(TKey Key, TValue Value)
+
+        public KeyValuePair(TKey Key, TValue Value)
         {
             this.Key = Key;
             this.Value = Value;
         }
     }
 
-    public TValue this[TKey key]
-    {
-        get => dictionary[key];
-        set => dictionary[key] = value;
-    }
-    public ICollection<TKey> Keys => dictionary.Keys;
+    // Since lists can be serialized natively by unity no custom implementation is needed
+    public void OnBeforeSerialize() { }
 
-    public ICollection<TValue> Values => dictionary.Values;
-
-    public int Count => dictionary.Count;
-
-    public bool IsReadOnly { get; set; }
-
-    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() => dictionary.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => dictionary.GetEnumerator();
-
-    // Serialize dictionary into list representation.
-    public void OnBeforeSerialize()
-    {
-        foreach (var pair in dictionary)
-        {
-            var kv = new KeyValue(pair.Key, pair.Value);
-            if (!list.Contains(kv))
-            {
-                list.Add(kv);
-            }
-        }
-    }
-
-    // Deserialize dictionary from list while checking for key-collisions.
+    // Fill dictionary with list pairs and flag key-collisions.
     public void OnAfterDeserialize()
     {
+        dict.Clear();
+        indexByKey.Clear();
         keyCollision = false;
-        dictionary = new Dictionary<TKey, TValue>(list.Count);
-        foreach (var pair in list)
+
+        for (int i = 0; i < list.Count; i++)
         {
-            if (pair.Key != null && !ContainsKey(pair.Key))
+            var key = list[i].Key;
+            if (key != null && !ContainsKey(key))
             {
-                Add(pair.Key, pair.Value);
+                dict.Add(key, list[i].Value);
+                indexByKey.Add(key, i);
             }
             else
             {
@@ -84,30 +62,84 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
         }
     }
 
-    public void Add(TKey key, TValue value) => dictionary.Add(key, value);
+    // IDictionary
+    public TValue this[TKey key]
+    {
+        get => dict[key];
+        set
+        {
+            dict[key] = value;
 
-    public void Add(KeyValuePair<TKey, TValue> item) => dictionary.Add(item.Key, item.Value);
+            if (indexByKey.ContainsKey(key))
+            {
+                var index = indexByKey[key];
+                list[index] = new KeyValuePair(key, value);
+            }
+            else
+            {
+                list.Add(new KeyValuePair(key, value));
+                indexByKey.Add(key, list.Count - 1);
+            }
+        }
+    }
+
+    public ICollection<TKey> Keys => dict.Keys;
+    public ICollection<TValue> Values => dict.Values;
+
+    public void Add(TKey key, TValue value)
+    {
+        dict.Add(key, value);
+        list.Add(new KeyValuePair(key, value));
+        indexByKey.Add(key, list.Count - 1);
+    }
+
+    public bool ContainsKey(TKey key) => dict.ContainsKey(key);
+
+    public bool Remove(TKey key) 
+    {
+        if (dict.Remove(key))
+        {
+            var index = indexByKey[key];
+            list.RemoveAt(index);
+            indexByKey.Remove(key);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    } 
+
+    public bool TryGetValue(TKey key, out TValue value) => dict.TryGetValue(key, out value);
+
+    // ICollection
+    public int Count => dict.Count;
+    public bool IsReadOnly { get; set; }
+
+    public void Add(KeyValuePair<TKey, TValue> pair)
+    {
+        Add(pair.Key, pair.Value);
+    }
 
     public void Clear()
     {
-        dictionary.Clear();
+        dict.Clear();
         list.Clear();
+        indexByKey.Clear();
     }
 
-    public bool Contains(KeyValuePair<TKey, TValue> item)
+    public bool Contains(KeyValuePair<TKey, TValue> pair)
     {
         TValue value;
-        if (dictionary.TryGetValue(item.Key, out value))
+        if (dict.TryGetValue(pair.Key, out value))
         {
-            return EqualityComparer<TValue>.Default.Equals(value, item.Value);
+            return EqualityComparer<TValue>.Default.Equals(value, pair.Value);
         }
         else
         {
             return false;
         }
     }
-
-    public bool ContainsKey(TKey key) => dictionary.ContainsKey(key);
 
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
@@ -115,52 +147,31 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
             throw new ArgumentException("The array cannot be null.");
         if (arrayIndex < 0)
            throw new ArgumentOutOfRangeException("The starting array index cannot be negative.");
-        if (array.Length - arrayIndex < dictionary.Count)
+        if (array.Length - arrayIndex < dict.Count)
             throw new ArgumentException("The destination array has fewer elements than the collection.");
 
-        foreach (var pair in dictionary)
+        foreach (var pair in dict)
         {
             array[arrayIndex] = pair;
             arrayIndex++;
         }
     }
 
-    public bool Remove(TKey key)
-    {
-        if (dictionary.Remove(key))
-        {
-            KeyValue item = new KeyValue();
-            foreach (var element in list)
-            {
-                if (EqualityComparer<TKey>.Default.Equals(element.Key, key))
-                {
-                    item = element;
-                    break;
-                }
-            }
-            list.Remove(item);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    public bool Remove(KeyValuePair<TKey, TValue> item)
+    public bool Remove(KeyValuePair<TKey, TValue> pair)
     {
         TValue value;
-        if (dictionary.TryGetValue(item.Key, out value))
+        if (dict.TryGetValue(pair.Key, out value))
         {
-            bool valueMatch = EqualityComparer<TValue>.Default.Equals(value, item.Value);
+            bool valueMatch = EqualityComparer<TValue>.Default.Equals(value, pair.Value);
             if (valueMatch)
             {
-                dictionary.Remove(item.Key);
-                return true;
+                return Remove(pair.Key);
             }
         }
         return false;
     }
 
-    public bool TryGetValue(TKey key, out TValue value) => dictionary.TryGetValue(key, out value);
+    // IEnumerable
+    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() => dict.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => dict.GetEnumerator();
 }
