@@ -1,6 +1,5 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using System.Collections.Generic;
 
 /// <summary>
 /// Draws the generic dictionary a bit nicer than Unity would natively (not as many expand-arrows
@@ -58,8 +57,7 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
         if (keyCollision)
         {
             var entryPos = new Rect(lineHeight, currentPos.y + combinedPadding, pos.width, lineHeight * 2f);
-            EditorGUI.HelpBox(entryPos, "There are duplicate keys in the dictionary." + 
-                " Duplicate keys will not be serialized.", MessageType.Warning);
+            EditorGUI.HelpBox(entryPos, "Duplicate keys will not be serialized.", MessageType.Warning);
         }
     }
 
