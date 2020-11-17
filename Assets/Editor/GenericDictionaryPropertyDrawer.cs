@@ -12,6 +12,7 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
     static float lineHeight = EditorGUIUtility.singleLineHeight;
     static float vertSpace = EditorGUIUtility.standardVerticalSpacing;
     static float combinedPadding = lineHeight + vertSpace;
+    int valuePropertiesCount;
 
     public override void OnGUI(Rect pos, SerializedProperty property, GUIContent label)
     {
@@ -28,31 +29,37 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
             // Render list size first.
             list.NextVisible(true);
             EditorGUI.indentLevel++;
-            currentPos = new Rect(headerPos.x, headerPos.y + combinedPadding, pos.width, lineHeight);
+            currentPos = new Rect(headerPos.x, headerPos.y + lineHeight, pos.width, lineHeight);
             EditorGUI.PropertyField(currentPos, list, new GUIContent("Size"));
+            currentPos.y += vertSpace;
 
             // Render list content.
-            currentPos.y += vertSpace;
-            while (true)
+            do
             {
                 if (list.name == "Key" || list.name == "Value")
                 {
-                    // Render key or value.
+                    // Setup position and draw properties.
                     var entryPos = new Rect(currentPos.x, currentPos.y + combinedPadding, pos.width, lineHeight);
-                    EditorGUI.PropertyField(entryPos, list, new GUIContent(list.name));
-                    currentPos.y += combinedPadding;
+                    if (list.isExpanded)
+                    {
+                        currentPos.y += valuePropertiesCount * combinedPadding;
+                    }
+                    EditorGUI.PropertyField(entryPos, list, new GUIContent(list.name), list.isExpanded);
 
-                    // Add spacing after each key value pair.
+                    // Add padding.
                     if (list.name == "Value")
                     {
-                        currentPos.y += vertSpace;
+                        currentPos.y += combinedPadding + vertSpace;
+                    }
+                    else
+                    {
+                        currentPos.y += lineHeight + vertSpace;
                     }
                 }
-                if (!list.NextVisible(true)) break;
-            }
+            } while (list.NextVisible(true));
         }
 
-        // If there are key collisions render warning box.
+        // Render key collision warning box.
         bool keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
         if (keyCollision)
         {
@@ -63,22 +70,51 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
+        // Count number of data-properties and expanded value-properties.
+        var listCopy = property.Copy();
+        int listCount = 0;
+        int expandedCount = 0;
+        do
+        {
+            if (listCopy.name == "data")
+            {
+                listCount++;
+            }
+            else if (listCopy.isExpanded && listCopy.name == "Value")
+            {
+                expandedCount++;
+            }
+        } while (listCopy.NextVisible(true));
+
+        // Count number of sub-properties inside Value-property.
+        var valueCopy = property.Copy();
+        while (valueCopy.Next(true))
+        {
+            if (valueCopy.name == "Value" && valueCopy.isExpanded)
+            {
+                valuePropertiesCount = valueCopy.CountInProperty() - 1;
+                break;
+            }
+        }
+
+        // Accumulate height for all properties.
         float totHeight = 0f;
 
-        // If there is a key collision account for height of warning box.
+        // Height of key collision warning.
         bool keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
         if (keyCollision)
         {
             totHeight += lineHeight * 2f + vertSpace;
         }
 
-        // Return height of KeyValue list (take into account if list is expanded or not).
+        // Height of KeyValue list.
         var listProp = property.FindPropertyRelative("list");
         if (listProp.isExpanded)
         {
-            listProp.NextVisible(true);
-            int listSize = listProp.intValue;
-            totHeight += listSize * 2f * combinedPadding + combinedPadding * 2f + listSize * vertSpace;
+            var t = EditorGUI.GetPropertyHeight(listProp, false);
+            totHeight += lineHeight * 2f + vertSpace;  // list header and size fields
+            totHeight += listCount * 2f * combinedPadding + listCount * vertSpace;  // list contents fields
+            totHeight += expandedCount * valuePropertiesCount * combinedPadding;  // expanded value fields
             return totHeight;
         }
         else
