@@ -12,55 +12,59 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
     static float lineHeight = EditorGUIUtility.singleLineHeight;
     static float vertSpace = EditorGUIUtility.standardVerticalSpacing;
     static float combinedPadding = lineHeight + vertSpace;
-    int valuePropertiesCount;
+    int valuePropCount;
 
     public override void OnGUI(Rect pos, SerializedProperty property, GUIContent label)
     {
-        // Render list header and expand arrow.
-        var list = property.FindPropertyRelative("list");
-        var headerPos = new Rect(lineHeight, pos.y, pos.width, lineHeight);
-        string fieldName = ObjectNames.NicifyVariableName(fieldInfo.Name);
-        EditorGUI.PropertyField(headerPos, list, new GUIContent(fieldName));
-
-        // Render list if expanded.
+        // Setup variables used for drawing.
         var currentPos = new Rect(lineHeight, pos.y, pos.width, lineHeight);
-        if (list.isExpanded)
+        bool isExpanded = false;
+        var propCopy = property.Copy();
+        var enumerator = property.GetEnumerator();
+
+        // Iterate properties and draw them.
+        while (enumerator.MoveNext())
         {
-            // Render list size first.
-            list.NextVisible(true);
-            EditorGUI.indentLevel++;
-            currentPos = new Rect(headerPos.x, headerPos.y + lineHeight, pos.width, lineHeight);
-            EditorGUI.PropertyField(currentPos, list, new GUIContent("Size"));
-            currentPos.y += vertSpace;
-
-            // Render list content.
-            do
+            var currentProp = ((SerializedProperty)enumerator.Current);
+            if (currentProp.name == "list")
             {
-                if (list.name == "Key" || list.name == "Value")
+                // Draw list header and expand arrow.
+                string fieldName = ObjectNames.NicifyVariableName(fieldInfo.Name);
+                EditorGUI.PropertyField(currentPos, currentProp, new GUIContent(fieldName));
+                isExpanded = currentProp.isExpanded;
+            }
+            else if (currentProp.name == "size" && isExpanded)
+            {
+                // Draw size property.
+                EditorGUI.indentLevel++;
+                currentPos = new Rect(currentPos.x, currentPos.y + lineHeight, pos.width, lineHeight);
+                EditorGUI.PropertyField(currentPos, currentProp, new GUIContent("Size"));
+                currentPos.y += vertSpace;
+            }
+            else if (isExpanded && (currentProp.name == "Key" || currentProp.name == "Value"))
+            {
+                // Setup position and draw KeyValue-properties.
+                var entryPos = new Rect(currentPos.x, currentPos.y + combinedPadding, pos.width, lineHeight);
+                if (currentProp.isExpanded)
                 {
-                    // Setup position and draw properties.
-                    var entryPos = new Rect(currentPos.x, currentPos.y + combinedPadding, pos.width, lineHeight);
-                    if (list.isExpanded)
-                    {
-                        currentPos.y += valuePropertiesCount * combinedPadding;
-                    }
-                    EditorGUI.PropertyField(entryPos, list, new GUIContent(list.name), list.isExpanded);
-
-                    // Add padding.
-                    if (list.name == "Value")
-                    {
-                        currentPos.y += combinedPadding + vertSpace;
-                    }
-                    else
-                    {
-                        currentPos.y += lineHeight + vertSpace;
-                    }
+                    currentPos.y += valuePropCount * combinedPadding;
                 }
-            } while (list.NextVisible(true));
+                EditorGUI.PropertyField(entryPos, currentProp, new GUIContent(currentProp.name), currentProp.isExpanded);
+
+                // Add padding.
+                if (currentProp.name == "Value")
+                {
+                    currentPos.y += combinedPadding + vertSpace;
+                }
+                else
+                {
+                    currentPos.y += lineHeight + vertSpace;
+                }
+            }
         }
 
-        // Render key collision warning box.
-        bool keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
+        // Draw key collision warning box.
+        bool keyCollision = propCopy.FindPropertyRelative("keyCollision").boolValue;
         if (keyCollision)
         {
             var entryPos = new Rect(lineHeight, currentPos.y + combinedPadding, pos.width, lineHeight * 2f);
@@ -70,29 +74,35 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
-        // Count number of data-properties and expanded value-properties.
+        // Make copies of property so we can iterate it more than once
         var listCopy = property.Copy();
+        var valueCopy = property.Copy();
+
+        // Count number of data-properties and expanded value-properties.
         int listCount = 0;
         int expandedCount = 0;
-        do
+        var enumerator = property.GetEnumerator();
+        while (enumerator.MoveNext())
         {
-            if (listCopy.name == "data")
+            var currentProp = ((SerializedProperty)enumerator.Current);
+            if (currentProp.name == "data")
             {
                 listCount++;
             }
-            else if (listCopy.isExpanded && listCopy.name == "Value")
+            else if (currentProp.isExpanded && currentProp.name == "Value")
             {
                 expandedCount++;
             }
-        } while (listCopy.NextVisible(true));
+        }
 
         // Count number of sub-properties inside Value-property.
-        var valueCopy = property.Copy();
-        while (valueCopy.Next(true))
+        enumerator = valueCopy.GetEnumerator();
+        while (enumerator.MoveNext())
         {
-            if (valueCopy.name == "Value" && valueCopy.isExpanded)
+            var currentProp = ((SerializedProperty)enumerator.Current);
+            if (currentProp.name == "Value" && currentProp.isExpanded)
             {
-                valuePropertiesCount = valueCopy.CountInProperty() - 1;
+                valuePropCount = currentProp.CountInProperty() - 1;
                 break;
             }
         }
@@ -101,20 +111,20 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
         float totHeight = 0f;
 
         // Height of key collision warning.
-        bool keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
+        bool keyCollision = listCopy.FindPropertyRelative("keyCollision").boolValue;
         if (keyCollision)
         {
             totHeight += lineHeight * 2f + vertSpace;
         }
 
         // Height of KeyValue list.
-        var listProp = property.FindPropertyRelative("list");
+        var listProp = listCopy.FindPropertyRelative("list");
         if (listProp.isExpanded)
         {
             var t = EditorGUI.GetPropertyHeight(listProp, false);
             totHeight += lineHeight * 2f + vertSpace;  // list header and size fields
             totHeight += listCount * 2f * combinedPadding + listCount * vertSpace;  // list contents fields
-            totHeight += expandedCount * valuePropertiesCount * combinedPadding;  // expanded value fields
+            totHeight += expandedCount * valuePropCount * combinedPadding;  // expanded value fields
             return totHeight;
         }
         else
