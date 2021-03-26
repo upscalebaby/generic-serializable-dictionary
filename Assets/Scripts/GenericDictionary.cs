@@ -101,6 +101,7 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
         {
             var index = indexByKey[key];
             list.RemoveAt(index);
+            UpdateIndexes(index);
             indexByKey.Remove(key);
             return true;
         }
@@ -108,7 +109,14 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
         {
             return false;
         }
-    } 
+    }
+
+    void UpdateIndexes(int removedIndex) {
+        for (int i = removedIndex; i < list.Count; i++) {
+            var key = list[i].Key;
+            indexByKey[key]--;
+        }
+    }
 
     public bool TryGetValue(TKey key, out TValue value) => dict.TryGetValue(key, out value);
 
