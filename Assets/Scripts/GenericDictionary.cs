@@ -4,7 +4,7 @@ using UnityEngine;
 using System;
 
 /// <summary>
-/// Generic Serializable Dictionary for Unity 2020.1.
+/// Generic Serializable Dictionary for Unity 2020.1 and above.
 /// Simply declare your key/value types and you're good to go - zero boilerplate.
 /// </summary>
 [Serializable]
@@ -12,24 +12,22 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
 {
     // Internal
     [SerializeField]
-    List<KeyValuePair> list = new List<KeyValuePair>();
-    [SerializeField]
-    Dictionary<TKey, int> indexByKey = new Dictionary<TKey, int>();
+    private List<KeyValuePair> list = new List<KeyValuePair>();
     [SerializeField, HideInInspector]
-    Dictionary<TKey, TValue> dict = new Dictionary<TKey, TValue>();
+    private Dictionary<TKey, int> indexByKey = new Dictionary<TKey, int>();
+    [SerializeField, HideInInspector]
+    private Dictionary<TKey, TValue> dict = new Dictionary<TKey, TValue>();
 
     #pragma warning disable 0414
     [SerializeField, HideInInspector]
-    bool keyCollision;
+    private bool keyCollision;
     #pragma warning restore 0414
 
-    // Serializable KeyValuePair struct
     [Serializable]
-    struct KeyValuePair
+    private struct KeyValuePair
     {
         public TKey Key;
         public TValue Value;
-
         public KeyValuePair(TKey Key, TValue Value)
         {
             this.Key = Key;
@@ -37,16 +35,15 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
         }
     }
 
-    // Since lists can be serialized natively by unity no custom implementation is needed
+    // Lists are serialized natively by Unity, no custom implementation needed.
     public void OnBeforeSerialize() { }
 
-    // Fill dictionary with list pairs and flag key-collisions.
+    // Populate dictionary with pairs from list and flag key-collisions.
     public void OnAfterDeserialize()
     {
         dict.Clear();
         indexByKey.Clear();
         keyCollision = false;
-
         for (int i = 0; i < list.Count; i++)
         {
             var key = list[i].Key;
@@ -69,7 +66,6 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
         set
         {
             dict[key] = value;
-
             if (indexByKey.ContainsKey(key))
             {
                 var index = indexByKey[key];
@@ -101,7 +97,7 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
         {
             var index = indexByKey[key];
             list.RemoveAt(index);
-            UpdateIndexes(index);
+            UpdateIndexLookup(index);
             indexByKey.Remove(key);
             return true;
         }
@@ -111,7 +107,7 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
         }
     }
 
-    void UpdateIndexes(int removedIndex) {
+    private void UpdateIndexLookup(int removedIndex) {
         for (int i = removedIndex; i < list.Count; i++) {
             var key = list[i].Key;
             indexByKey[key]--;
