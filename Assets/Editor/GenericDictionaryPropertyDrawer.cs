@@ -9,6 +9,7 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
 {
     private static float lineHeight = EditorGUIUtility.singleLineHeight;
     private static float vertSpace = EditorGUIUtility.standardVerticalSpacing;
+    private const float warningBoxHeight = 1.5f;
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
@@ -20,8 +21,12 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
         var keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
         if (keyCollision)
         {
-            position.y += EditorGUI.GetPropertyHeight(list, true) + vertSpace;
-            position.height = lineHeight * 2f;
+            position.y += EditorGUI.GetPropertyHeight(list, true);
+            if (!list.isExpanded)
+            {
+                position.y += vertSpace;
+            }
+            position.height = lineHeight * warningBoxHeight;
             position = EditorGUI.IndentedRect(position);
             EditorGUI.HelpBox(position, "Duplicate keys will not be serialized.", MessageType.Warning);
         }
@@ -38,7 +43,11 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
         bool keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
         if (keyCollision)
         {
-            height += lineHeight * 2f + vertSpace;
+            height += warningBoxHeight * lineHeight;
+            if (!list.isExpanded)
+            {
+                height += vertSpace;
+            }
         }
         return height;
     }
