@@ -1,11 +1,8 @@
-﻿using System;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Draws the generic dictionary a bit nicer than Unity would natively (not as many expand-arrows
-/// and better spacing between KeyValue pairs). Also renders a warning-box if there are duplicate
-/// keys in the dictionary.
+/// Draws the dictionary and a warning-box if there are duplicate keys.
 /// </summary>
 [CustomPropertyDrawer(typeof(GenericDictionary<,>))]
 public class GenericDictionaryPropertyDrawer : PropertyDrawer
@@ -18,16 +15,16 @@ public class GenericDictionaryPropertyDrawer : PropertyDrawer
         // Draw list.
         var list = property.FindPropertyRelative("list");
         string fieldName = ObjectNames.NicifyVariableName(fieldInfo.Name);
-        var currentPos = new Rect(lineHeight, pos.y, pos.width, lineHeight);
-        EditorGUI.PropertyField(currentPos, list, new GUIContent(fieldName), true);
+        EditorGUI.PropertyField(pos, list, new GUIContent(fieldName), true);
 
         // Draw key collision warning.
         var keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
         if (keyCollision)
         {
-            currentPos.y += EditorGUI.GetPropertyHeight(list, true) + vertSpace;
-            var entryPos = new Rect(lineHeight, currentPos.y, pos.width, lineHeight * 2f);
-            EditorGUI.HelpBox(entryPos, "Duplicate keys will not be serialized.", MessageType.Warning);
+            pos.y += EditorGUI.GetPropertyHeight(list, true) + vertSpace;
+            pos.height = lineHeight * 2f ;
+            pos = EditorGUI.IndentedRect(pos);
+            EditorGUI.HelpBox(pos, "Duplicate keys will not be serialized.", MessageType.Warning);
         }
     }
 
