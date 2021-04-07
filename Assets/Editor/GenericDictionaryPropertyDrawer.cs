@@ -7,42 +7,39 @@ using UnityEngine;
 [CustomPropertyDrawer(typeof(GenericDictionary<,>))]
 public class GenericDictionaryPropertyDrawer : PropertyDrawer
 {
-    static float lineHeight = EditorGUIUtility.singleLineHeight;
-    static float vertSpace = EditorGUIUtility.standardVerticalSpacing;
+    private static float lineHeight = EditorGUIUtility.singleLineHeight;
+    private static float vertSpace = EditorGUIUtility.standardVerticalSpacing;
 
-    public override void OnGUI(Rect pos, SerializedProperty property, GUIContent label)
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        // Draw list.
+        // Draw list of key/value pairs.
         var list = property.FindPropertyRelative("list");
-        string fieldName = ObjectNames.NicifyVariableName(fieldInfo.Name);
-        EditorGUI.PropertyField(pos, list, new GUIContent(fieldName), true);
+        EditorGUI.PropertyField(position, list, label, true);
 
         // Draw key collision warning.
         var keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
         if (keyCollision)
         {
-            pos.y += EditorGUI.GetPropertyHeight(list, true) + vertSpace;
-            pos.height = lineHeight * 2f ;
-            pos = EditorGUI.IndentedRect(pos);
-            EditorGUI.HelpBox(pos, "Duplicate keys will not be serialized.", MessageType.Warning);
+            position.y += EditorGUI.GetPropertyHeight(list, true) + vertSpace;
+            position.height = lineHeight * 2f;
+            position = EditorGUI.IndentedRect(position);
+            EditorGUI.HelpBox(position, "Duplicate keys will not be serialized.", MessageType.Warning);
         }
     }
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
-        float totHeight = 0f;
-
         // Height of KeyValue list.
-        var listProp = property.FindPropertyRelative("list");
-        totHeight += EditorGUI.GetPropertyHeight(listProp, true);
+        float height = 0f;
+        var list = property.FindPropertyRelative("list");
+        height += EditorGUI.GetPropertyHeight(list, true);
 
         // Height of key collision warning.
         bool keyCollision = property.FindPropertyRelative("keyCollision").boolValue;
         if (keyCollision)
         {
-            totHeight += lineHeight * 2f + vertSpace;
+            height += lineHeight * 2f + vertSpace;
         }
-
-        return totHeight;
+        return height;
     }
 }
