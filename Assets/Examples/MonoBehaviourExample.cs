@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// An example of using the generic dictionary with a MonoBehaviour.
+/// Example of using the generic dictionary with a MonoBehaviour.
 /// </summary>
-public class Example : MonoBehaviour
+public class MonoBehaviourExample : MonoBehaviour
 {
     // Simply declare the key/value types, zero boilerplate.
     public GenericDictionary<string, GameObject> myGenericDict;
