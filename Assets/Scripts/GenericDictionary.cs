@@ -4,24 +4,15 @@ using UnityEngine;
 using System;
 
 /// <summary>
-/// Generic Serializable Dictionary for Unity 2020.1 and above.
-/// Simply declare your key/value types and you're good to go - zero boilerplate.
+/// Generic Serializable Dictionary for Unity 2020 and above.
 /// </summary>
 [Serializable]
 public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISerializationCallbackReceiver
 {
-    // Internal
     [SerializeField]
     private List<KeyValuePair> list = new List<KeyValuePair>();
-    [SerializeField, HideInInspector]
     private Dictionary<TKey, int> indexByKey = new Dictionary<TKey, int>();
-    [SerializeField, HideInInspector]
     private Dictionary<TKey, TValue> dict = new Dictionary<TKey, TValue>();
-
-    #pragma warning disable 0414
-    [SerializeField, HideInInspector]
-    private bool keyCollision;
-    #pragma warning restore 0414
 
     [Serializable]
     private struct KeyValuePair
@@ -35,26 +26,25 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
         }
     }
 
-    // Lists are serialized natively by Unity, no custom implementation needed.
+    // Unity serializes Lists natively, no custom serialization needed.
     public void OnBeforeSerialize() { }
 
-    // Populate dictionary with pairs from list and flag key-collisions.
+    // Populate dictionary with Key/Value pairs from list and flag key-collisions.
     public void OnAfterDeserialize()
     {
         dict.Clear();
         indexByKey.Clear();
-        keyCollision = false;
         for (int i = 0; i < list.Count; i++)
         {
             var key = list[i].Key;
-            if (key != null && !ContainsKey(key))
+            if (key == null)
+            {
+                return;
+            }
+            if (!ContainsKey(key))
             {
                 dict.Add(key, list[i].Value);
                 indexByKey.Add(key, i);
-            }
-            else
-            {
-                keyCollision = true;
             }
         }
     }
@@ -150,7 +140,7 @@ public class GenericDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISeria
         if (array == null)
             throw new ArgumentException("The array cannot be null.");
         if (arrayIndex < 0)
-           throw new ArgumentOutOfRangeException("The starting array index cannot be negative.");
+        throw new ArgumentOutOfRangeException("The starting array index cannot be negative.");
         if (array.Length - arrayIndex < dict.Count)
             throw new ArgumentException("The destination array has fewer elements than the collection.");
 
