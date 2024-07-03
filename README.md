@@ -8,11 +8,19 @@ Lightweight and minimalist dictionary for Unity 2020.1.x with a native look and 
 
 * Optional property drawer that displays the Dictionary near pixel perfectly as a List but with standard spacing between each KeyValue-pair (to make it easier on the eyes).
 
-![](example.gif)
+  ![](Documentation~/example.gif)
 
 * Zero boilerplate, declare your field and start using it! See Example.cs for specifics.
+  
+  ```csharp
+  // Simply declare the key/value types, zero boilerplate.
+  public GenericDictionary<string, GameObject> myGenericDict;
 
-![](code_example1.PNG)
+  void Start()
+  {
+      myGenericDict.Add("test", this.gameObject);
+  }
+  ```
 
 ## Why 
 
@@ -36,18 +44,22 @@ No datastructures were harmed or modified when creating this: it's all just plai
 
 * The custom property drawer displays a standard warning box for key collisions - similar to the floating point precision warning in the Transform component.
 
-![](propertydrawerexample.PNG)
+  ![](Documentation~/propertydrawerexample.PNG)
 
 ## How to use
 
-This repo is a regular Unity project, so you have two choices:
-* Clone the repo and open the project in Unity and give it a spin.
+This repo is a UPM package by itself, so you can use Unity Package Manager
 
-* Copy GenericDictionary.cs into your Asset folder and the GenericDictionaryPropertyDrawer.cs into an Editor folder and you're good to go.
+* Press the plus sign and choose `Add package from git URL...`. There, use `https://github.com/upscalebaby/generic-serializable-dictionary.git`, or, with version: `https://github.com/upscalebaby/generic-serializable-dictionary#1.0.2`
+* You can also clone this repository and then add it as a local package using `Add package from disk...` option.
+* Another option is to manually edit the manifest.json file in your Packages folder. Add  `"com.upscalebaby.generic-serializable-dictionary" : "https://github.com/upscalebaby/generic-serializable-dictionary"`, or, with version:  `"com.upscalebaby.generic-serializable-dictionary" : "https://github.com/upscalebaby/generic-serializable-dictionary#1.0.2"`
+* Alternatively, you can copy the GenericDictionary.cs into your Assets folder and the GenericDictionaryPropertyDrawer.cs into an Editor folder and you're good to go.
+
+Examples can be installed from the package via Unity Package Manager.
 
 ## Requirements
 
 A Unity version with support for generic serialization (currently 2020.1.x and above).
 
 ## License
-Licensed under MIT, see license file.
+Licensed under MIT, see [license file](License.md).
