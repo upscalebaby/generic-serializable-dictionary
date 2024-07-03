@@ -1,0 +1,27 @@
+{
+  "name": "com.upscalebaby.generic-serializable-dictionary",
+  "version": "1.0.2",
+  "displayName": "Generic Serializable Dictionary",
+  "description": "Lightweight and minimalist dictionary for Unity 2020.1.x with a native look and feel.",
+  "unity": "2020.1",
+  "keywords": [
+    "Dictionary",
+    "Serializable",
+    "Serialization"
+  ],
+  "license": "MIT",
+  "licensesUrl": "https://github.com/upscalebaby/generic-serializable-dictionary?tab=MIT-1-ov-file",
+  "changelogUrl": "https://github.com/upscalebaby/generic-serializable-dictionary/releases",
+  "documentationUrl": "https://github.com/upscalebaby/generic-serializable-dictionary",
+  "samples": [
+    {
+      "displayName": "Examples",
+      "description": "Usage examples",
+      "path": "Samples~/Examples"
+    }
+  ],
+  "author": {
+    "name": "upscalebaby",
+    "url": "https://github.com/upscalebaby"
+  }
+}
